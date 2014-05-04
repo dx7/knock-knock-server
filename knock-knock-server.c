@@ -104,22 +104,31 @@ int main(int argc, char *argv[])
     if (connect_d == -1)
       error("Cannot open secondary socket");
 
-    if (say(connect_d, "Internet Knock-Knock Protocol Server\r\nVersion 0.1\r\nKnock! Knock!\r\n") != -1)
+    if (!fork())
     {
-      read_in(connect_d, buf, sizeof(buf));
-      if (strncasecmp("Who's there?", buf, 12))
-        say(connect_d, "You should say 'Who's there?'!");
-      else
+      close(listener_d);
+
+      if (say(connect_d, "Internet Knock-Knock Protocol Server\r\nVersion 0.1\r\nKnock! Knock!\r\n") != -1)
       {
-        if (say(connect_d, "Oscar\r\n>") != -1)
+        read_in(connect_d, buf, sizeof(buf));
+
+        if (strncasecmp("Who's there?", buf, 12))
+          say(connect_d, "You should say 'Who's there?'!");
+        else
         {
-          read_in(connect_d, buf, sizeof(buf));
-          if (strncasecmp("Oscar who?", buf, 10))
-            say(connect_d, "You should say 'Oscar who?'!\r\n");
-          else
-            say(connect_d, "Oscar silly question, you get a silly answer\r\n");
+          if (say(connect_d, "Oscar\r\n>") != -1)
+          {
+            read_in(connect_d, buf, sizeof(buf));
+
+            if (strncasecmp("Oscar who?", buf, 10))
+              say(connect_d, "You should say 'Oscar who?'!\r\n");
+            else
+              say(connect_d, "Oscar silly question, you get a silly answer\r\n");
+          }
         }
       }
+      close(connect_d);
+      exit(0);
     }
     close(connect_d);
   }
